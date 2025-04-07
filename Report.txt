@@ -1,0 +1,73 @@
+﻿The goal was to develop a system that determines the level of text formality.
+At first glance, the task seems simple: a scientific article is formal, a meme tweet is not. But between these extremes, there are many intermediate styles. How to distinguish them and where to draw the line?
+
+
+I started with Martin Joos's classification, which outlines 5 levels:
+
+
+Frozen — laws, official documents
+Formal — articles, business correspondence
+Consultative — explanatory, working style
+Informal — everyday communication
+Intimate — close personal communication
+
+
+However, this scheme seemed excessive to me: the frozen style is rarely encountered, and the intimate one is difficult to separate from the informal. There is also a formality scale from 0 to 100, but it is poorly interpretable: what does “52% formality” mean?
+
+
+So I adapted the scheme for a machine learning task and kept 4 levels:
+
+
+Slang — internet language, memes, teen speech
+Informal — everyday dialogues, messages
+Consultative — explanatory, polite style (lectures, instructions)
+Academic — strictly formal, articles, reports
+
+
+Dataset Collection
+
+
+Slang Style
+At first, I tried using the Twitter corpus strombergnlp/broad_twitter_corpus, but the texts were too short. Reddit comments also turned out to be unsuitable: all styles are mixed there. In the end, I chose the Discord dialogues dataset (breadlicker45/discord_data) and manually filtered those containing 17+ slang words from the dictionary MLBtrio/genz-slang-dataset. This helped isolate “true” slang.
+
+
+Informal Style
+The li2017dailydialog/daily_dialog dataset was perfect for this class. It contains everyday dialogues on various household topics. The style is casual but grammatically correct.
+
+
+Consultative Style
+This class was the hardest. I considered StackOverflow and Habr, but they mix formality levels, and automatic filtering is difficult. In the end, I chose TED Talk transcripts (bigscience-data/roots_en_ted_talks_iwslt) — this is exactly the style I was looking for: polite, explanatory, popular-science, but not academically dry.
+
+
+Academic Style
+This one was simple: I used the scientific articles dataset somosnlp-hackathon-2022/scientific_papers_en and took abstracts as short but dense excerpts of academic text.
+
+
+To ensure class balance, I made sure each class had 1000 examples.
+
+
+Model Evaluation
+
+
+I used: accuracy, precision, recall, f1-score, confusion matrix. The combination of these metrics gives a more complete picture.
+
+
+I tested several LLMs via the Hugging Face API: DeepSeek, LLaMA 2, and Mistral.
+At first, I was curious how a new and modern model would handle the task. DeepSeek performed well — it confidently distinguished styles and consistently gave correct answers.
+
+
+Then I decided to see if simpler models could handle the task just as accurately and process faster.
+LLaMA 2 did not succeed — the model often lumped everything into one class.
+But Mistral surprised me: despite having fewer parameters, it distinguished formality well and gave meaningful predictions.
+
+
+DeepSeek
+Showed excellent results even with a minimal prompt. When I added extended class descriptions and examples, the metrics improved dramatically.
+
+
+LLaMA 2
+Initially, almost all examples were classified as "academic." After prompt refinement (clear descriptions and class order) — the situation improved but was still not ideal.
+
+
+Mistral
+Showed more balanced results, especially on informal and consultative examples, but on average falls short of DeepSeek. Works much faster than DeepSeek.
